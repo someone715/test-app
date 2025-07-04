@@ -5,15 +5,18 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="水質監測系統", layout="wide")
 st.title("🌊 水質數據監測系統")
 
-uploaded_file = st.file_uploader("請上傳水質數據檔案(CSV)", type="csv")
+uploaded_file = st.file_uploader("請上傳水質數據檔案（CSV 或 Excel）", type=["csv", "xlsx", "xls"])
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+    # 判斷檔案格式
+    if uploaded_file.name.endswith('.csv'):
+        df = pd.read_csv(uploaded_file)
+    else:
+        df = pd.read_excel(uploaded_file)
 
     st.subheader("📋 原始資料")
     st.dataframe(df)
 
-    # 可選欄位
     options = df.columns.tolist()
     selected_col = st.selectbox("選擇要繪圖的欄位", options)
 
@@ -23,8 +26,8 @@ if uploaded_file:
         ax.plot(df[selected_col], marker='o')
         ax.set_ylabel(selected_col)
         ax.set_xlabel("資料點")
-        
-        # 異常提示：大於平均+2倍標準差
+
+        # 異常值偵測（平均 + 2倍標準差）
         avg = df[selected_col].mean()
         std = df[selected_col].std()
         outliers = df[selected_col] > avg + 2 * std
